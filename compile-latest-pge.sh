@@ -8,11 +8,12 @@
 #                                                                
 #
 # Script created by Luigifan2010
-# Version 0.1
+# Version 0.2.0
 # Check GitHub for the latest version of the script
-# 
+# https://github.com/Luigifan/platgenwohl-compile-script
 function COMPILE_LATEST_EDITOR()
 {
+	workDir=`pwd`
 	clear
 	echo "Will compile latest PlatGEnWohl"
 	echo "If at any time you want to force quit, press Ctrl+C on your keyboard."
@@ -36,27 +37,28 @@ function COMPILE_LATEST_EDITOR()
 	cd platgenwohl-master
 	cd PlatGEnWohl-master
 	cd Editor
-	echo "Compiling.."
-	qmake
-	make
+	version=`cat version.txt`
+	find '(' -name main.cpp -o -name mainwindow.cpp -o -name mainwindow.h -o -name mainwindow.ui -o -name PlatGenWohl_Editor.pro -o -name version.txt -o -name _resources -o -name about_dialog -o -name common_features -o -name data_configs -o -name edit_level -o -name edit_npc -o -name file_formats -o -name item_select_dialog -o -name languages -o -name level_scene -o -name libs -o -name main_window -o -name npc_dialog -o -name *.sh ')' -prune -o -exec rm -rf {} \;
+	echo "Compiling v$version.."
 	{ #try
-		qmake &&
-		mv output
+		qmake
 		echo "qmake completed successfully!"
 	} || { #catch
 		echo "qmake couldn't complete!"
-		mv log
+		mv log qmake_log.txt
 	}
 	{ #try
-		make &&
-		mv output
+		echo "Running make"
+		echo "make is currently being output to 'make_output.txt' in this scripts directory"
+		make >& $workDir/make_output.txt
 		echo "make completed successfully!"
 		echo "Build complete!"
+		echo "---------------------------------------------------------------------------"
 	} || { #catch
-		echo "qmake couldn't complete!"
-		mv log
+		echo "make couldn't complete!"
+		mv log make_log.txt
 	}
-	echo="Would you like to copy all the files to the desktop? (select no if build failed)"
+	echo "Would you like to copy all the files to the desktop? (select no if build failed)"
 	PS3="Select option (1, 2): "
 	options=("Yes" "No")
 	select opt in "${options[@]}"
@@ -64,6 +66,7 @@ function COMPILE_LATEST_EDITOR()
 		case $opt in
 			"Yes")
 				COPY_FILES_DESKTOP;
+				break
 				;;
 			"No")
 				echo "Will not copy!"
@@ -71,38 +74,47 @@ function COMPILE_LATEST_EDITOR()
 				;;
 		esac
 	done
+	break;
 }
 function COPY_FILES_DESKTOP()
 {
-	echo "Copying files to desktop directory 'platgenwohl_scriptcompiled'"
-	if [ -d "~/Desktop/platgenwohl_scriptcompiled" ]; then
-		printf="We detected an existing directory. Would you like to remove it?\nPlease make sure there aren't any important files in there."
+	clear
+	version2=`cat version.txt`
+	echo "Copying files to $HOME/platgenwohl_$version2"
+	if [ -d "$HOME/Desktop/platgenwohl_$version2" ]; then
+		echo "We detected an existing directory. Would you like to remove it?"
+		echo "Please make sure there aren't any important files in there."
 		PS3="Select option (1, 2): "
 		options=("Yes" "No")
 		select opt in "${options[@]}"
 		do
 			case $opt in
 				"Yes")
-					rm -rf "~/Desktop/platgenwohl_scriptcompiled"
+					echo "Removing $HOME/Desktop/platgenwohl_$version2"
+					rm -rf "$HOME/Desktop/platgenwohl_$version2"
+					break
 					;;
 				"No")
 					echo "Will rename existing directory!"
-					sudo mv "~/Desktop/platgenwohl_scriptcompiled" "~/Desktop/platgenwohl_scriptcompiled_old"
+					sudo mv "$HOME/Desktop/platgenwohl_$version2" "$HOME/Desktop/platgenwohl_$version2_old"
 					break
 					;;
+			esac
+		done
 	fi
-	mkdir "~/Desktop/platgenwohl_scriptcompiled"
-	cp -a "pge_editor" "~/Desktop/platgenwohl_scriptcompiled/pge_editor"
-	chmod +x "~/Desktop/platgenwohl_scriptcompiled/pge_editor"
+	mkdir "$HOME/Desktop/platgenwohl_$version2"
+	cp -a "pge_editor" "$HOME/Desktop/platgenwohl_$version2/pge_editor"
+	chmod +x "$HOME/Desktop/platgenwohl_$version2/pge_editor"
 	cd ..
 	cd "Content"
 	echo "Copying configs..."
-	cp -ar "configs" "~/Desktop/platgenwohl_scriptcompiled/configs"
+	cp -ar "configs" "$HOME/Desktop/platgenwohl_$version2/configs"
 	echo "Copying data..."
-	cp -ar "data" "~/Desktop/platgenwohl_scriptcompiled/data"
+	cp -ar "data" "$HOME/Desktop/platgenwohl_$version2/data"
 	echo "Copying help..."
-	cp -ar "help" "~/Desktop/platgenwohl_scriptcompiled/help"
-	echo "Done!"
+	cp -ar "help" "$HOME/Desktop/platgenwohl_$version2/help"
+	echo "Done! Just get the SMBX_Graphics.zip from Wohlstand or an existing SMBX installation"
+	break;
 }
 ########
 clear
@@ -128,10 +140,10 @@ do
 			COMPILE_LATEST_EDITOR;
 			;;
 		"Remove Current")
-			echo "will remove current repo"
+			echo "not implemented"
 			;;
 		"Sync Repos")
-			echo "Will sync repos"
+			echo "not implemented"
 			;;
 		"Quit")
 			echo "Goodbye!"
